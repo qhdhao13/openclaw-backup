@@ -1,0 +1,9 @@
+{
+  "name": "long-term-memory",
+  "description": "永久长期记忆系统 - 持久化存储所有对话、偏好、习惯、需求",
+  "version": "2.0.0",
+  "author": "龙虾",
+  "entry": "memory_engine.py",
+  "persistent": true,
+  "auto_load": true
+}

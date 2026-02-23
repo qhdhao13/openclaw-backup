@@ -1,0 +1,16 @@
+{
+  "name": "self-learning",
+  "description": "自学习系统 - 每日自动总结对话，提取偏好、习惯、目标，形成专属模型",
+  "version": "2.0.0",
+  "author": "龙虾",
+  "entry": "learning_engine.py",
+  "schedule": "0 23 * * *",
+  "features": [
+    "每日对话总结",
+    "偏好提取",
+    "习惯学习",
+    "常用操作记录",
+    "目标跟踪",
+    "个人模型构建"
+  ]
+}

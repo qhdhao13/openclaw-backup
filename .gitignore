@@ -1,0 +1,35 @@
+# OpenClaw Workspace Git Ignore
+
+# 敏感配置
+.env*
+*.apikeys
+*.secrets
+
+# 系统文件
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+
+# 备份文件
+*.bak
+*.backup
+
+# Node modules (if any)
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 其他
+.clawhub/
+.openclaw/
+.pi/
+memory-db/

@@ -1,0 +1,10 @@
+{
+  "name": "voice-wakeup",
+  "description": "语音唤醒系统 - 支持'龙虾''OpenClaw''贾维斯'唤醒词，随时打断响应",
+  "version": "2.0.0",
+  "author": "龙虾",
+  "entry": "voice_wake.py",
+  "wake_words": ["龙虾", "OpenClaw", "贾维斯", "lobster"],
+  "interruptible": true,
+  "always_on": true
+}

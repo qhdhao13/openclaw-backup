@@ -1,0 +1,13 @@
+{
+  "name": "persistent-agent",
+  "description": "持久化代理 - 24小时常驻后台，开机自启，崩溃自动重启",
+  "version": "2.0.0",
+  "author": "龙虾",
+  "entry": "daemon.py",
+  "daemon": {
+    "auto_start": true,
+    "auto_restart": true,
+    "keep_alive": true,
+    "run_24_7": true
+  }
+}

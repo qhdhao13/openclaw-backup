@@ -1,0 +1,8 @@
+{
+  "name": "wecom-webhook",
+  "description": "企业微信群机器人消息推送 - 支持文本、Markdown、图片、图文消息",
+  "version": "1.0.0",
+  "author": "龙虾",
+  "entry": "wecom_bot.py",
+  "webhook": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=4e1c4b71-d541-47fe-ba1d-e709a8b3b992"
+}
