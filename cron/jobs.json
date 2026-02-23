@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "zhuangzi-daily",
+      "name": "庄子每日精读",
+      "expr": "0 7 * * *",
+      "command": "python3 /Users/qhdh/.openclaw/workspace/skills/zhuangzi-daily/zhuangzi_daily.py",
+      "enabled": true,
+      "description": "每天早上7点发送一章庄子内容到邮箱",
+      "state": {
+        "scheduleErrorCount": 1,
+        "lastError": "schedule error: TypeError: Cannot read properties of undefined (reading 'kind')"
+      }
+    },
+    {
+      "id": "lunyu-daily",
+      "name": "论语每日精读",
+      "expr": "30 7 * * *",
+      "command": "python3 /Users/qhdh/.openclaw/workspace/skills/lunyu-daily/lunyu_daily.py",
+      "enabled": true,
+      "description": "每天早上7点30分发送一章论语内容到邮箱",
+      "state": {
+        "scheduleErrorCount": 1,
+        "lastError": "schedule error: TypeError: Cannot read properties of undefined (reading 'kind')"
+      }
+    },
+    {
+      "id": "healthcheck-security-audit",
+      "name": "安全检查",
+      "expr": "0 9 * * *",
+      "command": "openclaw healthcheck:security-audit",
+      "enabled": true,
+      "description": "每日安全检查",
+      "state": {
+        "scheduleErrorCount": 1,
+        "lastError": "schedule error: TypeError: Cannot read properties of undefined (reading 'kind')"
+      }
+    },
+    {
+      "id": "healthcheck-update-status",
+      "name": "更新状态检查",
+      "expr": "0 */6 * * *",
+      "command": "openclaw healthcheck:update-status",
+      "enabled": true,
+      "description": "每6小时检查更新状态",
+      "state": {
+        "scheduleErrorCount": 1,
+        "lastError": "schedule error: TypeError: Cannot read properties of undefined (reading 'kind')"
+      }
+    }
+  ]
+}
