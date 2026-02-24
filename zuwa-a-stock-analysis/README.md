@@ -63,6 +63,16 @@ cp .env.example .env
 # 编辑.env文件，填入你的API密钥
 ```
 
+**必需配置：**
+- `MOONSHOT_API_KEY` - Moonshot (Kimi) API Key，用于智能分析
+  - 获取地址: https://platform.moonshot.cn/
+  - 新用户有免费额度
+
+**可选配置：**
+- `TUSHARE_TOKEN` - Tushare Pro 数据接口（增强财务数据）
+- `BAIDU_API_KEY` - 百度搜索 API（新闻舆情分析）
+- `FEISHU_APP_ID` / `FEISHU_APP_SECRET` - 飞书机器人推送
+
 ### 3. 运行分析
 
 ```bash
