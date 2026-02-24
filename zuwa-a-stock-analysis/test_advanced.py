@@ -7,6 +7,11 @@ sys.path.insert(0, '.')
 
 import asyncio
 import pandas as pd
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
 from src.analysis.advanced_analyzer import get_advanced_analyzer
 from src.agents.data_agent import DataCollectionAgent
 
@@ -51,11 +56,12 @@ async def test_advanced_analysis():
             if signals:
                 print(f"\n📍 量价信号:")
                 for sig in signals:
-                    print(f"   {sig.get('type', '')} - {sig.get('description', '')}")
+                    emoji = "🔥" if sig.get('strength') == '极强' else "💪" if sig.get('strength') == '强势' else "⚠️" if sig.get('strength') == '警惕' else "📊"
+                    print(f"   {emoji} {sig.get('type', '')} - {sig.get('description', '')}")
             
             divergence = vp_analysis.get('divergence', [])
             if divergence:
-                print(f"\n⚠️ 背离信号:")
+                print(f"\n📈 趋势信号:")
                 for div in divergence:
                     print(f"   {div}")
         else:

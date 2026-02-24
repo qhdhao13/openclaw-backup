@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Tuple
 from datetime import datetime, timedelta
+import os
 
 
 class AdvancedAnalyzer:
@@ -12,6 +13,7 @@ class AdvancedAnalyzer:
     
     def __init__(self):
         self.ak = None
+        self.tushare_token = os.getenv("TUSHARE_TOKEN")
     
     def _get_akshare(self):
         """延迟加载akshare"""
@@ -19,6 +21,13 @@ class AdvancedAnalyzer:
             import akshare as ak
             self.ak = ak
         return self.ak
+    
+    def _get_tushare(self):
+        """延迟加载tushare"""
+        if self.tushare_token:
+            import tushare as ts
+            return ts.pro_api(self.tushare_token)
+        return None
     
     # ============================================
     # 功能1: 历史成交量与股价对应关系分析
@@ -92,6 +101,41 @@ class AdvancedAnalyzer:
                     "description": "价格下跌但成交量萎缩，抛压减轻"
                 })
             
+            # 新增：量堆检测（连续3天以上放量）
+            recent_3d_volume = df.tail(3)
+            if all(v > df['volume_ma20'].iloc[-1] * 1.3 for v in recent_3d_volume['volume']):
+                volume_price_signals.append({
+                    "type": "量堆",
+                    "strength": "强势",
+                    "description": "连续3日放量超过20日均量30%，资金持续流入"
+                })
+            
+            # 新增：地量检测（近60天最低成交量）
+            min_volume_60d = df['volume'].tail(60).min()
+            if latest['volume'] <= min_volume_60d * 1.05:
+                volume_price_signals.append({
+                    "type": "地量",
+                    "strength": "反转信号",
+                    "description": "成交量创60日新低，极度缩量，变盘在即"
+                })
+            
+            # 新增：天量检测（近60天最高成交量）
+            max_volume_60d = df['volume'].tail(60).max()
+            if latest['volume'] >= max_volume_60d * 0.95:
+                volume_price_signals.append({
+                    "type": "天量",
+                    "strength": "警惕",
+                    "description": "成交量创60日新高，天量天价或天量见底"
+                })
+            
+            # 新增：成交量突破（突破20日均量2倍）
+            if latest['volume'] > latest['volume_ma20'] * 2:
+                volume_price_signals.append({
+                    "type": "成交量突破",
+                    "strength": "极强",
+                    "description": "成交量突破20日均量2倍，重大资金异动"
+                })
+            
             # 量价背离检测
             price_trend = self._calculate_trend(df['close'].tail(20))
             volume_trend = self._calculate_trend(df['volume'].tail(20))
@@ -102,6 +146,12 @@ class AdvancedAnalyzer:
             elif price_trend == "DOWN" and volume_trend == "UP":
                 divergence.append("底背离：价格下跌但成交量放大，可能企稳")
             
+            # 新增：量价齐升/齐跌趋势
+            if price_trend == "UP" and volume_trend == "UP":
+                divergence.append("量价齐升：上涨趋势得到成交量确认，趋势强劲")
+            elif price_trend == "DOWN" and volume_trend == "DOWN":
+                divergence.append("量价齐跌：下跌趋势缩量，可能接近底部")
+            
             # 成交量分布分析
             volume_percentile = df['volume'].tail(60).rank(pct=True).iloc[-1]
             
@@ -111,6 +161,8 @@ class AdvancedAnalyzer:
                 "volume_ma20": int(latest['volume_ma20']),
                 "volume_ratio": round(latest['volume'] / latest['volume_ma5'], 2) if latest['volume_ma5'] > 0 else 0,
                 "volume_percentile": round(volume_percentile, 2),
+                "min_volume_60d": int(min_volume_60d),
+                "max_volume_60d": int(max_volume_60d),
                 "signals": volume_price_signals,
                 "divergence": divergence,
                 "price_trend": price_trend,
@@ -132,7 +184,56 @@ class AdvancedAnalyzer:
         - 股东数量减少 + 股价上涨 = 筹码集中，庄股特征
         - 股东数量增加 + 股价下跌 = 筹码分散，散户化
         """
-        return {"error": "股东数据接口暂不可用，AKShare接口已变更"}
+        try:
+            # 尝试使用Tushare获取股东数据
+            pro = self._get_tushare()
+            if pro is None:
+                return {"error": "未配置Tushare Token，无法获取股东数据"}
+            
+            code = symbol[2:] if symbol.startswith(('sh', 'sz', 'bj')) else symbol
+            
+            # 获取股东户数数据
+            try:
+                df = pro.stk_holdernumber(ts_code=code)
+                
+                if df is None or df.empty:
+                    return {"error": "Tushare返回空数据"}
+                
+                # 解析数据
+                df = df.sort_values('end_date', ascending=False)
+                latest = df.iloc[0]
+                
+                holder_count = latest.get('holder_num', 0)
+                
+                # 计算变化
+                if len(df) > 1:
+                    prev = df.iloc[1]
+                    prev_count = prev.get('holder_num', holder_count)
+                    change_pct = ((holder_count - prev_count) / prev_count * 100) if prev_count else 0
+                else:
+                    change_pct = 0
+                
+                analysis = []
+                if change_pct < -5:
+                    analysis.append("股东数量显著减少，筹码趋于集中")
+                elif change_pct > 5:
+                    analysis.append("股东数量增加，筹码趋于分散")
+                else:
+                    analysis.append("股东数量变化不大")
+                
+                return {
+                    "current_holders": int(holder_count),
+                    "change_pct": round(change_pct, 2),
+                    "analysis": analysis,
+                    "signal": "筹码集中" if change_pct < -5 else "筹码分散" if change_pct > 5 else "中性",
+                    "data_source": "Tushare Pro"
+                }
+                
+            except Exception as e:
+                return {"error": f"Tushare获取股东数据失败: {e}"}
+                
+        except Exception as e:
+            return {"error": f"分析失败: {e}"}
     
     # ============================================
     # 功能3: 历史股价与融资融券关系分析
@@ -146,7 +247,62 @@ class AdvancedAnalyzer:
         - 融资余额减少 + 股价下跌 = 杠杆资金撤离，风险释放
         - 融资余额增加 + 股价下跌 = 抄底资金入场，可能反弹
         """
-        return {"error": "融资融券数据接口暂不可用"}
+        try:
+            # 尝试使用Tushare获取融资融券数据
+            pro = self._get_tushare()
+            if pro is None:
+                return {"error": "未配置Tushare Token，无法获取融资融券数据"}
+            
+            code = symbol[2:] if symbol.startswith(('sh', 'sz', 'bj')) else symbol
+            exchange = 'SH' if code.startswith('6') else 'SZ'
+            ts_code = f"{code}.{exchange}"
+            
+            # 获取融资融券数据
+            try:
+                df = pro.margin_detail(ts_code=ts_code)
+                
+                if df is None or df.empty:
+                    return {"error": "Tushare返回空数据"}
+                
+                # 解析数据
+                df = df.sort_values('trade_date', ascending=False)
+                latest = df.iloc[0]
+                
+                margin_balance = float(latest.get('rzmre', 0))  # 融资余额
+                margin_buy = float(latest.get('rzmre', 0))      # 融资买入额
+                margin_repay = float(latest.get('rzche', 0))    # 融资偿还额
+                
+                short_balance = float(latest.get('rqmcl', 0))   # 融券余额
+                
+                # 计算5日变化
+                if len(df) > 5:
+                    prev = df.iloc[5]
+                    prev_margin = float(prev.get('rzmre', margin_balance))
+                    change_5d = ((margin_balance - prev_margin) / prev_margin * 100) if prev_margin else 0
+                else:
+                    change_5d = 0
+                
+                # 分析
+                analysis = []
+                if change_5d > 10:
+                    analysis.append("融资余额5日增加超10%，杠杆资金积极入场")
+                elif change_5d < -10:
+                    analysis.append("融资余额5日减少超10%，杠杆资金撤离")
+                
+                return {
+                    "margin_balance": round(margin_balance, 2),
+                    "short_balance": round(short_balance, 2),
+                    "margin_change_5d": round(change_5d, 2),
+                    "analysis": analysis,
+                    "signal": "融资增加" if change_5d > 5 else "融资减少" if change_5d < -5 else "中性",
+                    "data_source": "Tushare Pro"
+                }
+                
+            except Exception as e:
+                return {"error": f"Tushare获取融资融券数据失败: {e}"}
+                
+        except Exception as e:
+            return {"error": f"分析失败: {e}"}
     
     # ============================================
     # 功能4: 当日主动买主动卖明细数据分析
@@ -206,7 +362,8 @@ class AdvancedAnalyzer:
                     "sell_ratio": round(sell_ratio, 1),
                     "small_buy": round(small_buy, 2),
                     "small_sell": round(small_sell, 2),
-                    "signal": "主动买入占优" if buy_ratio > 55 else "主动卖出占优" if sell_ratio > 55 else "买卖均衡"
+                    "signal": "主动买入占优" if buy_ratio > 55 else "主动卖出占优" if sell_ratio > 55 else "买卖均衡",
+                    "data_source": "AKShare"
                 }
                 
             except Exception as e:
