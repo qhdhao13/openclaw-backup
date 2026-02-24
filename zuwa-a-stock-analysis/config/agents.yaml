@@ -1,0 +1,107 @@
+# 祖蛙系统配置
+
+system:
+  name: "祖蛙沪深A股分析"
+  version: "1.0.0"
+  max_workers: 5  # 并行Agent数量
+
+# Agent配置
+agents:
+  chief_analyst:
+    name: "首席分析师"
+    model: "moonshot/kimi-k2.5"
+    temperature: 0.3
+    description: "决策中枢，综合所有分析生成最终投资建议"
+  
+  bull_analyst:
+    name: "多头分析师"
+    model: "moonshot/kimi-k2.5"
+    temperature: 0.7
+    personality:
+      optimism: 0.8      # 乐观程度
+      risk_appetite: "激进" 
+      holding_period: "中长线"
+    description: "专门寻找看涨理由的乐观派"
+  
+  bear_analyst:
+    name: "空头分析师"
+    model: "moonshot/kimi-k2.5"
+    temperature: 0.7
+    personality:
+      caution: 0.9       # 谨慎程度
+      risk_aversion: "高"
+      stop_loss: "严格"
+    description: "专门寻找风险隐患的谨慎派"
+  
+  retail_sentiment:
+    name: "散户情绪分析师"
+    model: "moonshot/kimi-k2.5"
+    temperature: 0.4
+    description: "监控散户情绪，提供反向指标"
+    indicators:
+      - margin_balance    # 融资余额
+      - new_accounts      # 新增开户
+      - search_index      # 搜索指数
+      - forum_sentiment   # 论坛情绪
+  
+  data_collector:
+    name: "数据收集员"
+    description: "收集和清洗股票数据"
+  
+  technical_analyst:
+    name: "技术分析师"
+    description: "技术指标分析和形态识别"
+    indicators:
+      - sma
+      - ema
+      - macd
+      - rsi
+      - kdj
+      - bollinger
+      - adx
+  
+  capital_analyst:
+    name: "资金分析师"
+    description: "监控主力资金、北向资金、龙虎榜"
+  
+  intelligence_analyst:
+    name: "情报分析师"
+    description: "新闻舆情和政策解读"
+  
+  sector_analyst:
+    name: "行业分析师"
+    description: "行业对比和产业链分析"
+
+# 权重配置 (首席Agent综合时使用)
+weights:
+  technical: 0.20
+  capital: 0.25
+  intelligence: 0.20
+  sector: 0.15
+  bull_view: 0.10
+  bear_view: 0.10
+
+# 阈值设定
+thresholds:
+  strong_buy: 80      # 强烈推荐
+  buy: 60             # 推荐买入
+  hold: 40            # 中性持有
+  sell: 20            # 建议卖出
+  strong_sell: 0      # 强烈卖出
+  
+  sentiment_extreme_greed: 85   # 散户极度贪婪
+  sentiment_greed: 70           # 散户贪婪
+  sentiment_fear: 30            # 散户恐慌
+  sentiment_extreme_fear: 15    # 散户极度恐慌
+
+# 数据源配置
+data_sources:
+  tushare:
+    enabled: true
+    token: ${TUSHARE_TOKEN}
+  
+  akshare:
+    enabled: true
+  
+  eastmoney:
+    enabled: true
