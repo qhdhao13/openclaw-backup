@@ -47,7 +47,7 @@ class LLMAnalyzer:
                     {"role": "system", "content": "你是一位专业的股票分析师，擅长A股市场分析。请提供客观、专业的分析意见。"},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,
+                temperature=1.0,
                 max_tokens=2000
             )
             

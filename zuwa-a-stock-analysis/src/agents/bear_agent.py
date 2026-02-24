@@ -131,7 +131,7 @@ class BearAnalystAgent(BaseAgent):
         
         # 主力资金
         main = capital.get("main_force", {})
-        if main.get("net_flow", 0) < -5000:
+        if (main.get("net_flow") or 0) < -5000:
             cases.append({
                 "type": "资金面",
                 "factor": "主力资金大幅流出",
@@ -139,7 +139,7 @@ class BearAnalystAgent(BaseAgent):
                 "description": f"主力净流出{abs(main['net_flow'])}万，机构减持"
             })
         
-        if main.get("flow_5d", 0) < -10000:
+        if (main.get("flow_5d") or 0) < -10000:
             cases.append({
                 "type": "资金面",
                 "factor": "5日持续流出",
@@ -149,7 +149,7 @@ class BearAnalystAgent(BaseAgent):
         
         # 北向资金
         north = capital.get("north_bound", {})
-        if north.get("net_5d", 0) < -1000:
+        if (north.get("net_5d") or 0) < -1000:
             cases.append({
                 "type": "资金面",
                 "factor": "北向资金减持",
@@ -159,7 +159,7 @@ class BearAnalystAgent(BaseAgent):
         
         # 龙虎榜
         dragon = capital.get("dragon_tiger", {})
-        if dragon.get("in_list") and dragon.get("net_amount", 0) < 0:
+        if dragon.get("in_list") and (dragon.get("net_amount") or 0) < 0:
             cases.append({
                 "type": "资金面",
                 "factor": "龙虎榜游资出货",

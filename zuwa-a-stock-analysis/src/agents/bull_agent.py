@@ -177,7 +177,7 @@ class BullAnalystAgent(BaseAgent):
         
         # 主力资金
         main = capital.get("main_force", {})
-        net_flow = main.get("net_flow", 0)
+        net_flow = main.get("net_flow") or 0
         if net_flow > 5000:
             cases.append({
                 "type": "资金面",
@@ -186,7 +186,7 @@ class BullAnalystAgent(BaseAgent):
                 "description": f"主力净流入{net_flow}万，机构建仓"
             })
         
-        if main.get("flow_5d", 0) > 10000:
+        if (main.get("flow_5d") or 0) > 10000:
             cases.append({
                 "type": "资金面",
                 "factor": "5日持续流入",
@@ -196,7 +196,7 @@ class BullAnalystAgent(BaseAgent):
         
         # 北向资金
         north = capital.get("north_bound", {})
-        if north.get("net_today", 0) > 1000:
+        if (north.get("net_today") or 0) > 1000:
             cases.append({
                 "type": "资金面",
                 "factor": "北向资金增持",
@@ -206,7 +206,7 @@ class BullAnalystAgent(BaseAgent):
         
         # 龙虎榜
         dragon = capital.get("dragon_tiger", {})
-        if dragon.get("in_list") and dragon.get("net_amount", 0) > 0:
+        if dragon.get("in_list") and (dragon.get("net_amount") or 0) > 0:
             famous = dragon.get("famous_salons", [])
             cases.append({
                 "type": "资金面",
