@@ -97,8 +97,37 @@ class ZuwaStockAnalyzer:
             context[f"{key}_analysis"] = result.details
             print(f"  ✅ {result.agent_name}: {result.summary[:50]}...")
         
-        # Step 3: 多空辩论
-        print("\n🐂🐻 Step 3: 多空辩论...")
+        # Step 3: 高级分析（量价关系等）
+        print("\n📊 Step 3: 深度数据分析...")
+        
+        from src.analysis.advanced_analyzer import get_advanced_analyzer
+        advanced = get_advanced_analyzer()
+        
+        # 量价关系分析
+        daily_data = context.get("daily_data")
+        if daily_data is not None and not daily_data.empty:
+            vp_analysis = advanced.analyze_volume_price_relationship(daily_data)
+            if "error" not in vp_analysis:
+                agent_outputs["volume_price"] = type('obj', (object,), {
+                    'agent_name': '量价分析师',
+                    'signal': 'BULLISH' if vp_analysis.get('health_score', 50) > 60 else 'BEARISH' if vp_analysis.get('health_score', 50) < 40 else 'NEUTRAL',
+                    'confidence': abs(vp_analysis.get('health_score', 50) - 50) * 2,
+                    'summary': f"量价健康度: {vp_analysis.get('health_score', 'N/A')}/100, 信号: {vp_analysis.get('signals', [{}])[0].get('type', '无') if vp_analysis.get('signals') else '无'}",
+                    'details': vp_analysis,
+                    'timestamp': datetime.now(),
+                    'to_dict': lambda: {
+                        'agent_name': '量价分析师',
+                        'signal': 'BULLISH' if vp_analysis.get('health_score', 50) > 60 else 'BEARISH' if vp_analysis.get('health_score', 50) < 40 else 'NEUTRAL',
+                        'confidence': abs(vp_analysis.get('health_score', 50) - 50) * 2,
+                        'summary': f"量价健康度: {vp_analysis.get('health_score', 'N/A')}/100",
+                        'details': vp_analysis,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                })()
+                print(f"  ✅ 量价分析师: 健康度 {vp_analysis.get('health_score', 'N/A')}/100")
+        
+        # Step 4: 多空辩论
+        print("\n🐂🐻 Step 4: 多空辩论...")
         
         bull_task = self.agents["bull"].analyze(symbol, context)
         bear_task = self.agents["bear"].analyze(symbol, context)
@@ -111,8 +140,8 @@ class ZuwaStockAnalyzer:
         print(f"  🐂 多头: {bull_result.summary[:50]}...")
         print(f"  🐻 空头: {bear_result.summary[:50]}...")
         
-        # Step 4: 首席决策
-        print("\n🧠 Step 4: 首席分析师综合决策...")
+        # Step 5: 首席决策
+        print("\n🧠 Step 5: 首席分析师综合决策...")
         
         final_decision = await self.agents["chief"].make_decision(
             symbol, name, agent_outputs
