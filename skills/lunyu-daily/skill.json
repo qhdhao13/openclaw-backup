@@ -1,0 +1,11 @@
+{
+  "name": "lunyu-daily",
+  "description": "论语每日精读 - 每天发送一章论语内容到邮箱",
+  "version": "1.0.0",
+  "author": "龙虾",
+  "entry": "lunyu_daily.py",
+  "config": {
+    "email_to": "qhdhao@126.com,qhdhao@qq.com,ziyuanha@gmail.com,940115951@qq.com",
+    "send_time": "07:30"
+  }
+}
