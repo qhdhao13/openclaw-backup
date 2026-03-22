@@ -1,0 +1,1 @@
+0 7 * * * /usr/local/bin/node /Users/qhdh/.openclaw/workspace/skills/news-daily/fetch-news.js >> /tmp/news-daily.log 2>&1
